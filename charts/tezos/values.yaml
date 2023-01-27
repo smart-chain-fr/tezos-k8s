@@ -224,15 +224,25 @@ should_generate_unsafe_deterministic_data: false
 node_globals:
   env: {}
 nodes:
-  rolling-node:
-    storage_size: 100Gi
+  # rolling-node:
+  #   storage_size: 100Gi
+  #   runs:
+  #     - octez_node
+  #   instances:
+  #     - is_bootstrap_node: false
+  #       config:
+  #         shell:
+  #           history_mode: rolling
+  #         metrics_addr: [ "0.0.0.0:9932" ]
+  archive-node:
+    storage_size: 1000Gi
     runs:
       - octez_node
     instances:
       - is_bootstrap_node: false
         config:
           shell:
-            history_mode: rolling
+            history_mode: archive
           metrics_addr: [ "0.0.0.0:9932" ]
 # End nodes
 
@@ -245,6 +255,7 @@ services:
   tezos_node_rpc:
     selector:
 #      rpc_node: "true"
+      appType : "octez-node"
 
 # Prometheus Operator is required in your cluster in order to enable
 # serviceMonitor below.
@@ -292,10 +303,12 @@ prefer_tarballs: false
 # will be ignored for all artifact types.
 ## NOTE: `*_tarball_url` and `*_snapshot_url` are mutually exclusive
 ## and cannot both be specified at the same time.
-archive_tarball_url: null # e.g. https://mainnet.xtz-shots.io/archive-tarball
+archive_tarball_url: https://mainnet.xtz-shots.io/archive-tarball # e.g. https://mainnet.xtz-shots.io/archive-tarball
+#archive_tarball_url: https://limanet.xtz-shots.io/archive-tarball
 full_snapshot_url: null
 full_tarball_url: null
-rolling_snapshot_url: null
+rolling_snapshot_url: https://mainnet.xtz-shots.io/rolling
+#rolling_snapshot_url: https://limanet.xtz-shots.io/rolling
 rolling_tarball_url: null
 
 # List of peers for nodes to connect to. Gets set under config.json `p2p` field
@@ -327,6 +340,7 @@ expected_proof_of_work: 26
 ##   testnets and shouldn't be needed in general.
 node_config_network:
   chain_name: mainnet
+  #chain_name: limanet
   ## When joining a public network, a tezos node will by default
   ## connect to the boot-nodes of the selected chain. This may not
   ## always be desired. For example, you may want to run a mainnet

@@ -236,6 +236,16 @@ nodes:
           shell:
             history_mode: rolling
           metrics_addr: ["0.0.0.0:9932"]
+  archive-node:
+    storage_size: 1000Gi
+    runs:
+      - octez_node
+    instances:
+      - is_bootstrap_node: false
+        config:
+          shell:
+            history_mode: rolling
+          metrics_addr: ["0.0.0.0:9932"]
 # End nodes
 
 ## Configuration for K8s Service resources. Configuring the labels selector of a
@@ -294,10 +304,12 @@ prefer_tarballs: false
 # will be ignored for all artifact types.
 ## NOTE: `*_tarball_url` and `*_snapshot_url` are mutually exclusive
 ## and cannot both be specified at the same time.
-archive_tarball_url: null # e.g. https://mainnet.xtz-shots.io/archive-tarball
+archive_tarball_url: https://mainnet.xtz-shots.io/archive-tarball # e.g. https://mainnet.xtz-shots.io/archive-tarball
+#archive_tarball_url: https://limanet.xtz-shots.io/archive-tarball
 full_snapshot_url: null
 full_tarball_url: null
-rolling_snapshot_url: null
+rolling_snapshot_url: https://mainnet.xtz-shots.io/rolling
+#rolling_snapshot_url: https://limanet.xtz-shots.io/rolling
 rolling_tarball_url: null
 
 # List of peers for nodes to connect to. Gets set under config.json `p2p` field

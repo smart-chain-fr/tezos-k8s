@@ -8,7 +8,7 @@ is_invitation: false
 
 # Images not part of the tezos-k8s repo go here
 images:
-  octez: tezos/tezos:v15-release
+  octez: tezos/tezos:v16.1
 # Images that are part of the tezos-k8s repo go here with 'dev' tag
 tezos_k8s_images:
   utils: ghcr.io/oxheadalpha/tezos-k8s-utils:master
@@ -256,6 +256,7 @@ services:
   ## be forwarded to all nodes if no labels are specified.
   tezos_node_rpc:
     selector:
+      appType : "octez-node"
 #      rpc_node: "true"
 
 # Prometheus Operator is required in your cluster in order to enable
@@ -534,3 +535,45 @@ bcdIndexer:
   # For the pv for the optional postgres container
   storageClassName: ""
   storage: "300Gi"
+
+
+link:
+  ingressA:
+    enabled: true
+    host: mainnet-archive-link.smart-node.com
+    tls:
+      enabled: true
+      hosts:
+        - mainnet-archive-link.smart-node.com
+      secretName: link-archive-tls
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/client_max_body_size: 200m
+      nginx.ingress.kubernetes.io/client-body-buffer-size: 2M
+      nginx.ingress.kubernetes.io/proxy-body-size: 200m
+      nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS, DELETE, PATCH
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+
+  ingressR:
+    enabled: true
+    host: mainnet-rolling-link.smart-node.com
+    tls:
+      enabled: true
+      hosts:
+        - mainnet-rolling-link.smart-node.com
+      secretName: link-rolling-tls
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/client_max_body_size: 200m
+      nginx.ingress.kubernetes.io/client-body-buffer-size: 2M
+      nginx.ingress.kubernetes.io/proxy-body-size: 200m
+      nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS, DELETE, PATCH
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"

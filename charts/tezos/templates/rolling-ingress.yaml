@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: link-rolling
-  namespace: tzk8s-testnet 
+  namespace: poc-tzk8s   
 {{if .Values.link.ingressR.annotations}}
   annotations: 
 {{toYaml .Values.link.ingressR.annotations | indent 4 }}

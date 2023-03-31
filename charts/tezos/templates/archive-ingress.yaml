@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: link-archive
-  namespace: poc-tzk8s 
+  namespace: tzk8s-testnet  
 {{if .Values.link.ingressA.annotations}}
   annotations: 
 {{toYaml .Values.link.ingressA.annotations | indent 4 }}

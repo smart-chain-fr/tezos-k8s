@@ -12,7 +12,7 @@ ln -s /var/tezos/client /home/tezos/.tezos-client
 for d in 1 1 5 10 20 60 120; do
 	/usr/local/bin/octez-node run				\
 			--bootstrap-threshold 0			\
-			--config-file /etc/tezos/config.json
+			--config-file /etc/tezos/config.json  	
 	sleep $d
 done
 

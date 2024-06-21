@@ -1,0 +1,27 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: link-archive
+  namespace: poc-tzk8s  
+{{if .Values.link.ingressA.annotations}}
+  annotations: 
+{{toYaml .Values.link.ingressA.annotations | indent 4 }}
+{{end}}
+spec:
+  {{if .Values.link.ingressA.tls.enabled }}
+  tls:
+  - hosts: {{ .Values.link.ingressA.tls.hosts }}
+    secretName: {{ .Values.link.ingressA.tls.secretName }}
+  {{end}}
+  rules:
+  - host: {{ .Values.link.ingressA.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: archive-node #tezos-node-rpc
+            port:
+              number: 8732

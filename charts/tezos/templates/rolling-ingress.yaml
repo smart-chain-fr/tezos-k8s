@@ -1,0 +1,27 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: link-rolling
+  namespace: poc-tzk8s   
+{{if .Values.link.ingressR.annotations}}
+  annotations: 
+{{toYaml .Values.link.ingressR.annotations | indent 4 }}
+{{end}}
+spec:
+  {{if .Values.link.ingressR.tls.enabled }}
+  tls:
+  - hosts: {{ .Values.link.ingressR.tls.hosts }}
+    secretName: {{ .Values.link.ingressR.tls.secretName }}
+  {{end}}
+  rules:
+  - host: {{ .Values.link.ingressR.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rolling-node #tezos-node-rpc
+            port:
+              number: 8732

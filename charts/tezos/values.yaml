@@ -8,7 +8,7 @@ is_invitation: false
 
 # Images not part of the tezos-k8s repo go here
 images:
-  octez: tezos/tezos:v15-release
+  octez: tezos/tezos:v16.1
 # Images that are part of the tezos-k8s repo go here with 'dev' tag
 tezos_k8s_images:
   utils: ghcr.io/oxheadalpha/tezos-k8s-utils:master
@@ -18,6 +18,8 @@ tezos_k8s_images:
 ## scripts that will look up some of these values. They should not be modified.
 tzkt_indexer_statefulset:
   name: tzkt-indexer
+bcd_indexer_statefulset:
+  name: bcd-indexer
 signer_statefulset:
   name: tezos-signer
   pod_type: signing
@@ -233,7 +235,17 @@ nodes:
         config:
           shell:
             history_mode: rolling
-          metrics_addr: [ "0.0.0.0:9932" ]
+          metrics_addr: ["0.0.0.0:9932"]
+  archive-node:
+    storage_size: 1000Gi
+    runs:
+      - octez_node
+    instances:
+      - is_bootstrap_node: false
+        config:
+          shell:
+            history_mode: rolling
+          metrics_addr: ["0.0.0.0:9932"]
 # End nodes
 
 ## Configuration for K8s Service resources. Configuring the labels selector of a
@@ -244,6 +256,7 @@ services:
   ## be forwarded to all nodes if no labels are specified.
   tezos_node_rpc:
     selector:
+      appType : "octez-node"
 #      rpc_node: "true"
 
 # Prometheus Operator is required in your cluster in order to enable
@@ -264,7 +277,7 @@ serviceMonitor:
 #
 # By default no signer is configured:
 signers: {}
-# Here is an example of octez signer config. When set, the 
+# Here is an example of octez signer config. When set, the
 # ```
 # signers:
 #  tezos-signer-0:
@@ -292,11 +305,11 @@ prefer_tarballs: false
 # will be ignored for all artifact types.
 ## NOTE: `*_tarball_url` and `*_snapshot_url` are mutually exclusive
 ## and cannot both be specified at the same time.
-archive_tarball_url: null # e.g. https://mainnet.xtz-shots.io/archive-tarball
+archive_tarball_url: https://mainnet.xtz-shots.io/archive-tarball # e.g. https://mainnet.xtz-shots.io/archive-tarball
 full_snapshot_url: null
 full_tarball_url: null
 rolling_snapshot_url: null
-rolling_tarball_url: null
+rolling_tarball_url: https://mainnet.xtz-shots.io/rolling-tarball
 
 # List of peers for nodes to connect to. Gets set under config.json `p2p` field
 bootstrap_peers: []
@@ -348,8 +361,8 @@ protocols:
   ##   "on" and "off" must be between quotes.
   ## Note that we are not providing default votes since every baker needs
   ## to make an explicit educated choice on every toggle.
-  - command: PtLimaPt
-    vote: {}
+  # - command: PtLimaPt
+  #   vote: {}
   # - command: alpha
   #   vote:
   #     liquidity_baking_toggle_vote: "pass"
@@ -449,8 +462,8 @@ protocols:
 ## Deploy an indexer with the chain. An indexer puts the chain
 ## contents in a database for efficient indexing. Most dapps need it.
 ## Supported indexers:
-## * tzkt https://github.com/baking-bad/tzkt
-#
+## * tzkt: https://github.com/baking-bad/tzkt
+## * bcd: https://github.com/baking-bad/bcdhub
 ## Templatized indexer configuration values go in the config field.
 ##
 # indexers:
@@ -489,3 +502,76 @@ protocols:
 #       db_password: bar
 #       # api_log_level: Debug
 #       # indexer_log_level: Debug
+
+## Set values `indexerRpcUrl` and `db.password` for an indexer to be created.
+bcdIndexer:
+  images:
+    api: ghcr.io/baking-bad/bcdhub-api:4.4.0
+    indexer: ghcr.io/baking-bad/bcdhub-indexer:4.4.0
+    gui: ghcr.io/baking-bad/bcdhub-gui:4.4.0
+    postgres: postgres:14
+
+  gui:
+    enabled: false
+    ## Url of the BCD api for the frontend to hit
+    apiUrl: http://localhost:14000
+    ## Url to the RPC backend for the frontend to hit
+    rpcUrl: http://localhost:8732
+
+  ## RPC url of the node to be indexed
+  # indexerRpcUrl: http://archive-baking-node-0.archive-baking-node:8732
+
+  db:
+    # By default creates a postgres db container. Setting to true won't create
+    # it and instead expects credentials for an external postgres database.
+    isExternal: false
+    hostname: localhost
+    name: bcd
+    password: bcd-password
+    user: bcd
+
+  # For the pv for the optional postgres container
+  storageClassName: ""
+  storage: "300Gi"
+
+
+link:
+  ingressA:
+    enabled: true
+    host: mainnet-archive-link.smart-node.com
+    tls:
+      enabled: true
+      hosts:
+        - mainnet-archive-link.smart-node.com
+      secretName: link-archive-tls
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/client_max_body_size: 200m
+      nginx.ingress.kubernetes.io/client-body-buffer-size: 2M
+      nginx.ingress.kubernetes.io/proxy-body-size: 200m
+      nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS, DELETE, PATCH
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+
+  ingressR:
+    enabled: true
+    host: mainnet-rolling-link.smart-node.com
+    tls:
+      enabled: true
+      hosts:
+        - mainnet-rolling-link.smart-node.com
+      secretName: link-rolling-tls
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/client_max_body_size: 200m
+      nginx.ingress.kubernetes.io/client-body-buffer-size: 2M
+      nginx.ingress.kubernetes.io/proxy-body-size: 200m
+      nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS, DELETE, PATCH
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
